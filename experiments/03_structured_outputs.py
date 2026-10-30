@@ -3,11 +3,18 @@ from dotenv import load_dotenv
 from groq import Groq
 
 from typing import Literal
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, Field, ValidationError, field_validator
 
 class Verdict(BaseModel):
     verdict: Literal["true", "false", "cannot_verify"]
     reason: str = Field(min_length=1)
+
+    @field_validator("verdict", mode="before")
+    @classmethod
+    def normalise_verdict(cls, v):
+        if isinstance(v, str):
+            return v.strip().lower()
+        return v
 
 
 samples = [
@@ -17,6 +24,7 @@ samples = [
     '{"verdict": "true"}',                                      # missing field
     '{"verdict": "true", "reason": ""}',                        # empty reason
     '```json\n{"verdict": "true", "reason": "ok"}\n```',        # code fences
+    '{"verdict": " FALSE ", "reason": "No record of this."}',   # case + spaces
 ]
 
 for s in samples:

@@ -16,6 +16,12 @@ class Verdict(BaseModel):
             return v.strip().lower()
         return v
 
+#Strict JSON Schema
+schema = Verdict.model_json_schema()
+schema["additionalProperties"] = False   # strict mode requires this: no extra fields allowed
+print(schema)  
+
+
 
 samples = [
     '{"verdict": "false", "reason": "No record of this."}',     # valid
@@ -26,13 +32,6 @@ samples = [
     '```json\n{"verdict": "true", "reason": "ok"}\n```',        # code fences
     '{"verdict": " FALSE ", "reason": "No record of this."}',   # case + spaces
 ]
-
-for s in samples:
-    try:
-        v = Verdict.model_validate_json(s)
-        print("OK    ", v)
-    except ValidationError as e:
-        print("REJECT", e.errors()[0]["msg"])
 
 
 load_dotenv()                                        # reads .env into environment variables
@@ -47,8 +46,7 @@ SYSTEM_PROMPT = (
     "you cannot see recent news. If a claim could be about events after your "
     "cutoff, say you cannot verify it. Never call a claim false just because "
     "you have no information about it."
-    " Reply with ONLY a JSON object of this exact shape: "
-    '{"verdict": "true" | "false" | "cannot_verify", "reason": "<one sentence>"}'
+    " Reply using the provided JSON format."
 )
 
 response = client.chat.completions.create(
@@ -58,6 +56,10 @@ response = client.chat.completions.create(
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": f"Is this news claim true? {claim}"},
     ],
+    response_format={
+        "type": "json_schema",
+        "json_schema": {"name": "verdict", "strict": True, "schema": schema},
+    },
 )
 
 answer = response.choices[0].message.content

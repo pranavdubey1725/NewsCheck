@@ -2,6 +2,31 @@ import os
 from dotenv import load_dotenv
 from groq import Groq
 
+from typing import Literal
+from pydantic import BaseModel, Field, ValidationError
+
+class Verdict(BaseModel):
+    verdict: Literal["true", "false", "cannot_verify"]
+    reason: str = Field(min_length=1)
+
+
+samples = [
+    '{"verdict": "false", "reason": "No record of this."}',     # valid
+    '{"verdict": "False", "reason": "No record of this."}',     # wrong case
+    '{"verdict": "unverifiable", "reason": "Too recent."}',     # invented label
+    '{"verdict": "true"}',                                      # missing field
+    '{"verdict": "true", "reason": ""}',                        # empty reason
+    '```json\n{"verdict": "true", "reason": "ok"}\n```',        # code fences
+]
+
+for s in samples:
+    try:
+        v = Verdict.model_validate_json(s)
+        print("OK    ", v)
+    except ValidationError as e:
+        print("REJECT", e.errors()[0]["msg"])
+
+
 load_dotenv()                                        # reads .env into environment variables
 client = Groq(api_key=os.environ["GROQ_API_KEY"])    # one client, reused for every call
 
@@ -34,6 +59,7 @@ import json   # put this with the other imports at the top
 raw = response.choices[0].message.content
 print(repr(raw))          # repr shows the exact string, including hidden characters
 
-data = json.loads(raw)    # text → Python dict
-print("Verdict:", data["verdict"])
-print("Reason: ", data["reason"])
+raw = response.choices[0].message.content
+result = Verdict.model_validate_json(raw)
+print(result.verdict)
+print(result.reason)

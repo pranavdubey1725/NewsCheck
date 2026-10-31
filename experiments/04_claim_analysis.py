@@ -69,7 +69,7 @@ HELD_OUT = [
     "Infosys ne 20,000 logo ko nikaal diya",                  # Hinglish (out of v1 scope)
 ]
 
-for i, text in enumerate(TEST_INPUTS, start=1):
+for i, text in enumerate(HELD_OUT, start=1):
     result = call_structured(SYSTEM_PROMPT_V2, f"<user_text>\n{text}\n</user_text>", ClaimAnalysis)
     print(f"\n[{i}] {text}")
     print(f"    type : {result.input_type}")

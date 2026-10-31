@@ -24,6 +24,7 @@ print(schema)
 
 
 
+
 samples = [
     '{"verdict": "false", "reason": "No record of this."}',     # valid
     '{"verdict": "False", "reason": "No record of this."}',     # wrong case

@@ -28,31 +28,38 @@ def call_structured(system: str, user: str, output_model: Type[T]) -> T:
     schema["additionalProperties"] = False
 
     last_error = None
+    messages = [
+        {"role": "system", "content": system},
+        {"role": "user", "content": user},
+    ]
+    last_error = None
     for attempt in range(1, MAX_ATTEMPTS + 1):
         try:
             response = _client.chat.completions.create(
                 model=MODEL,
                 temperature=0,
-                messages=[
-                    {"role": "system", "content": system},
-                    {"role": "user", "content": user},
-                ],
+                messages=messages,
                 response_format={
                     "type": "json_schema",
-                    "json_schema": {
-                        "name": output_model.__name__,
-                        "strict": True,
-                        "schema": schema,
-                    },
+                    "json_schema": {"name": output_model.__name__, "strict": True, "schema": schema},
                 },
             )
-            return output_model.model_validate_json(response.choices[0].message.content)
         except groq.BadRequestError as e:
             if not _is_json_validate_failed(e):
                 raise
             last_error = e
+            print(f"Attempt {attempt}/{MAX_ATTEMPTS} failed: {type(e).__name__}")
+            continue
+
+        content = response.choices[0].message.content
+        try:
+            return output_model.model_validate_json(content)
         except ValidationError as e:
             last_error = e
-        print(f"Attempt {attempt}/{MAX_ATTEMPTS} failed: {type(last_error).__name__}")
+            print(f"Attempt {attempt}/{MAX_ATTEMPTS} failed: {e.errors()[0]['msg']}")
+            messages = messages + [
+                {"role": "assistant", "content": content},
+                {"role": "user", "content": f"Your answer broke a rule: {e.errors()[0]['msg']}. Answer again, following every rule."},
+            ]
 
     raise RuntimeError(f"No valid output after {MAX_ATTEMPTS} attempts") from last_error

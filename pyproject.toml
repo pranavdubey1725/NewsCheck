@@ -8,6 +8,7 @@ dependencies = [
     "groq>=1.7.0",
     "pydantic>=2.14.2",
     "python-dotenv>=1.2.4",
+    "tavily-python>=0.8.5",
 ]
 [build-system]
 requires = ["hatchling"]

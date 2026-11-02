@@ -1,4 +1,5 @@
 from collections import Counter
+from urllib.parse import urlparse
 
 from newscheck.claims import ClaimAnalysis
 from newscheck.judge import ArticleVerdict
@@ -29,12 +30,16 @@ def headline(verdicts: list[ArticleVerdict]) -> str:
     counts = Counter(v.stance for v in verdicts)
     agree, disagree = counts["supports"], counts["contradicts"]
     if agree == 0 and disagree == 0:
-        return "Articles were found, but none of them addresses this specific claim."
+        return "Sources were found, but none of them addresses this specific claim."
     if disagree and not agree:
-        return f"{disagree} article(s) report something different from the post."
+        return f"{disagree} independent source(s) report something different from the post."
     if agree and not disagree:
-        return f"{agree} article(s) report the same thing as the post."
-    return f"Articles are split: {agree} agree with the post, {disagree} disagree."
+        return f"{agree} independent source(s) report the same thing as the post."
+    return f"Sources are split: {agree} agree with the post, {disagree} disagree."
+
+
+def _outlet(url: str) -> str:
+    return urlparse(url).netloc.removeprefix("www.")
 
 
 def render(analysis: ClaimAnalysis, verdicts: list[ArticleVerdict]) -> str:
@@ -51,6 +56,9 @@ def render(analysis: ClaimAnalysis, verdicts: list[ArticleVerdict]) -> str:
         if v.stance == "contradicts" and v.judgement.conflicting_detail:
             lines.append(f"    Reports instead: {v.judgement.conflicting_detail}")
         lines.append(f"    {v.article.url}")
+        if v.copies:
+            outlets = ", ".join(_outlet(c.url) for c in v.copies)
+            lines.append(f"    Also published by (same text): {outlets}")
 
     lines += ["", DISCLAIMER]
     return "\n".join(lines)

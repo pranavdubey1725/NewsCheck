@@ -13,7 +13,7 @@ from tavily import TavilyClient
 
 load_dotenv()
 
-MIN_SCORE = 0.75      # ← your decision goes here (provisional)
+MIN_SCORE = 0.4
 MAX_RESULTS = 5
 
 _client = TavilyClient(api_key=os.environ["TAVILY_API_KEY"])

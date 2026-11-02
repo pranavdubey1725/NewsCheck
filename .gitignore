@@ -6,6 +6,7 @@ dist/
 wheels/
 *.egg-info
 ADR.md
+experiments/data/
 
 # Virtual environments
 .venv

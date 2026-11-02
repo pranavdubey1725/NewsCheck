@@ -3,6 +3,8 @@ from newscheck.search import search_news
 QUERIES = [
     "Infosys fired 20,000 people",
     "Microsoft offers voluntary exit to 60,000 employees",
+    "Microsoft asks staff to leave voluntarily",          # same event, different words
+    "Microsoft layoffs 2026",                             # right company, vaguer topic
 ]
 
 for q in QUERIES:

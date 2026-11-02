@@ -10,8 +10,9 @@ _CURLY_QUOTES = str.maketrans({"“": '"', "”": '"', "‘": "'", "’": "'"})
 
 
 def _normalise(text: str) -> str:
-    """Lowercase, straighten quotes, and remove ALL whitespace, so spacing glitches can't break a match."""
-    return "".join(text.translate(_CURLY_QUOTES).lower().split())
+    """Lowercase, and remove whitespace and quote marks, so formatting differences can't break a match."""
+    text = text.translate(_CURLY_QUOTES).lower()
+    return "".join(text.split()).replace('"', "").replace("'", "")
 
 
 def quote_in_text(quote: str, text: str) -> bool:
@@ -50,6 +51,8 @@ class Judgement(BaseModel):
 
     @model_validator(mode="after")
     def check_consistency(self):
+        if len(self.details) < 2:
+            raise ValueError("split the claim into at least 2 separate details (e.g. action and number), not one")
         if not self.details:
             raise ValueError("details must list at least one detail of the claim")
         if self.stance != "not_addressed" and not self.evidence.strip():

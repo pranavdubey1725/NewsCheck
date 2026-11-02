@@ -42,3 +42,7 @@ def test_spacing_glitches_in_the_source_are_ignored():
 
 def test_a_changed_number_is_still_rejected():
     assert not quote_in_text("offered buyouts to 6,000 employees", "offered buyouts to 60,000 employees")
+
+
+def test_quote_marks_inside_the_source_are_ignored():
+    assert quote_in_text("providing a voluntary exit offer", "Providing a “Voluntary Exit Offer” to staff")

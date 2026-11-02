@@ -1,5 +1,12 @@
 import re
 
+MIN_SHINGLES = 10  # below this, a text is too short to judge copying either way
+
+# Provisional, from 10 pairs: independent ≤ 0.02 J / 0.09 C; one copied pair 0.63 J / 0.85 C.
+# Set well inside both gaps, leaving room for trimmed copies that score lower than the one we've seen.
+JACCARD_THRESHOLD = 0.40
+CONTAINMENT_THRESHOLD = 0.60
+
 
 def shingles(text: str, n: int = 5) -> set[tuple[str, ...]]:
     """All runs of n consecutive words, lowercased, ignoring punctuation."""
@@ -17,15 +24,12 @@ def jaccard(a: set, b: set) -> float:
         return 0.0
     return len(a & b) / len(a | b)
 
+
 def containment(a: set, b: set) -> float:
     """Shared items divided by the size of the smaller set. 1.0 = the smaller text is entirely inside the larger."""
     if not a or not b:
         return 0.0
     return len(a & b) / min(len(a), len(b))
-
-MIN_SHINGLES = 10            # below this, a text is too short to judge copying either way
-JACCARD_THRESHOLD = 0.40      # ← your decision (provisional)
-CONTAINMENT_THRESHOLD = 0.60  # ← your decision (provisional)
 
 
 def is_copy(a: set, b: set) -> bool:

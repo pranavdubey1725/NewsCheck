@@ -1,4 +1,10 @@
-from newscheck.overlap import jaccard, shingles
+from newscheck.overlap import containment, jaccard, shingles
+
+WIRE = (
+    "Microsoft has offered 60,000 employees or about 27 percent of its global workforce "
+    "voluntary buyouts as the software giant spends heavily on artificial intelligence "
+    "the company said the offer is time limited and built on an earlier retirement program"
+)
 
 
 def test_identical_texts_score_one():
@@ -22,18 +28,9 @@ def test_empty_text_never_matches():
     assert jaccard(shingles(""), shingles("")) == 0.0
 
 
-from newscheck.overlap import containment, jaccard, shingles
-
-WIRE = (
-    "Microsoft has offered 60,000 employees or about 27 percent of its global workforce "
-    "voluntary buyouts as the software giant spends heavily on artificial intelligence "
-    "the company said the offer is time limited and built on an earlier retirement program"
-)
-
-
 def test_trimmed_copy_has_low_jaccard_but_full_containment():
     full = shingles(WIRE)
-    trimmed = shingles(" ".join(WIRE.split()[:15]))     # an outlet that ran only the first 15 words
+    trimmed = shingles(" ".join(WIRE.split()[:15]))
     assert jaccard(full, trimmed) < 0.5
     assert containment(full, trimmed) == 1.0
 

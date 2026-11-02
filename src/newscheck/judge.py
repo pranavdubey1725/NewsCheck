@@ -71,8 +71,8 @@ class ArticleVerdict(BaseModel):
 
 
 
-SYSTEM_PROMPT = """You compare one claim against one news article excerpt.
-
+SYSTEM_PROMPT = """
+Break the claim into at least 2 separate details (who, action, number, place, time). Never check the whole claim as a single detail.
 Decide the article's stance on the claim:
 - supports: the article states the same fact as the claim (wording may differ).
 - contradicts: the article is about the same event but states a different, incompatible fact (a different number, place, name or action).

@@ -20,7 +20,10 @@ def test_empty_quote_is_never_found():
 
 ARTICLE = SearchResult(url="https://example.com", title="T", content="C", score=0.9)
 CONTRADICTING = Judgement(
-    details=[DetailCheck(detail="action: fired", article_says="voluntary buyouts", matches="no")],
+    details=[
+        DetailCheck(detail="action: fired", article_says="voluntary buyouts", matches="no"),
+        DetailCheck(detail="number: 60,000", article_says="60,000", matches="yes"),
+    ],
     evidence="voluntary buyouts",
     reason="Different action.",
 )

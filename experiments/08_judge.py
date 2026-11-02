@@ -4,6 +4,7 @@ from pathlib import Path
 from newscheck.judge import judge_article
 from newscheck.search import SearchResult, search_news
 
+
 CASES = {
     "Microsoft is kicking out 60,000 employees.": Path("experiments/data/kicking_out_articles.json"),
     "Microsoft offered voluntary buyouts to 60,000 employees.": Path("experiments/data/buyouts_articles.json"),
@@ -27,9 +28,8 @@ for claim, cache in CASES.items():
     print(f"\nCLAIM: {claim}  ({len(articles)} frozen articles)")
     counts = {"supports": 0, "contradicts": 0, "not_addressed": 0}
     for article in articles:
-        j = judge_article(claim, article)
-        counts[j.stance] += 1
-        print(f"\n  [{j.stance}] {article.title}")
-        for d in j.details:
+        v = judge_article(claim, article)
+        counts[v.stance] += 1
+        print(f"\n  [{v.stance}] {article.title}")
+        for d in v.judgement.details:
             print(f"      {d.matches:<13} {d.detail}  →  {d.article_says}")
-    print(f"\n  SUMMARY: {counts}")

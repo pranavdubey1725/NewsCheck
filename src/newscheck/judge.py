@@ -105,6 +105,7 @@ def judge_article(claim: str, article: SearchResult, excerpt: str | None = None)
         found = quote_in_text(judgement.evidence, f"{article.title}\n{text}")
         if found or judgement.stance == "not_addressed":
             break
+        print(f"[retry] evidence quote not found in {article.url}, asking again")
         user += (
             f"\n\nYour evidence quote {judgement.evidence!r} does not appear in the passages. "
             "Copy ONE continuous quote exactly, character for character, from a single passage."

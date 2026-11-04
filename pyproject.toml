@@ -5,9 +5,11 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "fastembed>=0.9.1",
     "groq>=1.7.0",
     "pydantic>=2.14.2",
     "python-dotenv>=1.2.4",
+    "qdrant-client>=1.20.0",
     "tavily-python>=0.8.5",
 ]
 [build-system]

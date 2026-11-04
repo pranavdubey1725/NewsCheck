@@ -49,3 +49,8 @@ def test_a_changed_number_is_still_rejected():
 
 def test_quote_marks_inside_the_source_are_ignored():
     assert quote_in_text("providing a voluntary exit offer", "Providing a “Voluntary Exit Offer” to staff")
+
+
+def test_source_with_no_relevant_passage_is_not_addressed():
+    v = ArticleVerdict(article=ARTICLE)
+    assert v.stance == "not_addressed"

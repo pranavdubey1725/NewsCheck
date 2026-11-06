@@ -10,6 +10,7 @@ from newscheck.judge import ArticleVerdict, judge_article
 from newscheck.report import render, render_not_checkable
 from newscheck.search import search_news
 from newscheck.sources import group_into_sources
+from newscheck.summary import stream_summary
 
 PASSAGES_PER_SOURCE = 2
 
@@ -53,6 +54,10 @@ def check_stream(text: str) -> Iterator[Event]:
             verdict = ArticleVerdict(article=rep)
         verdict.copies = [a for a in group if a is not rep]
         verdicts.append(verdict)
+
+    yield Event(stage="summarise", message="Summarising what the sources say")
+    for token in stream_summary(analysis.claim, verdicts):
+        yield Event(stage="summary_token", message=token)
 
     yield Event(stage="done", message="Done", report=render(analysis, verdicts))
 

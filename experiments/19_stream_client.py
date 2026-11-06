@@ -9,6 +9,9 @@ with httpx.stream("POST", "http://127.0.0.1:8000/check", json={"text": TEXT}, ti
         if not line.startswith("data: "):
             continue
         event = json.loads(line.removeprefix("data: "))
-        print(f"[{event['stage']}] {event['message']}")
+        if event["stage"] == "summary_token":
+            print(event["message"], end="", flush=True)
+            continue
+        print(f"\n[{event['stage']}] {event['message']}")
         if event["report"]:
             print("\n" + event["report"])

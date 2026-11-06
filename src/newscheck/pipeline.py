@@ -3,7 +3,9 @@ from urllib.parse import urlparse
 
 from pydantic import BaseModel
 
+
 from newscheck.agent import gather_coverage
+
 from newscheck.chunks import chunk_sentences
 from newscheck.claims import analyse_input
 from newscheck.index import RELEVANCE_FLOOR, Passage, PassageIndex
@@ -28,6 +30,7 @@ def check_stream(text: str) -> Iterator[Event]:
         yield Event(stage="done", message="Done", report=render_not_checkable(analysis))
         return
 
+
     yield Event(stage="search", message="Searching the news (choosing several queries)")
     articles, queries = gather_coverage(analysis.claim)
     groups = group_into_sources(articles)
@@ -36,6 +39,7 @@ def check_stream(text: str) -> Iterator[Event]:
         stage="sources",
         message=f"Searched for: {searched}. Found {len(articles)} articles from {len(groups)} independent sources",
     )
+
 
     yield Event(stage="index", message="Reading the full articles")
     index = PassageIndex()
@@ -53,10 +57,9 @@ def check_stream(text: str) -> Iterator[Event]:
         hits = index.search_source_hybrid(analysis.claim, source_id, k=PASSAGES_PER_SOURCE)
         relevant = [h for h in hits if h.score >= RELEVANCE_FLOOR]
         if relevant:
-            excerpt = "\n\n".join(h.passage.text for h in relevant)
-            verdict = judge_article(analysis.claim, rep, excerpt)
+            verdict = judge_article(analysis.claim, rep, "\n\n".join(h.passage.text for h in relevant))
         else:
-            verdict = ArticleVerdict(article=rep)   # nothing relevant: no LLM call
+            verdict = ArticleVerdict(article=rep)
         verdict.copies = [a for a in group if a is not rep]
         verdicts.append(verdict)
 

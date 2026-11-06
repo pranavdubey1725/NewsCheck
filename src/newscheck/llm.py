@@ -1,4 +1,5 @@
 import os
+from collections.abc import Iterator
 from typing import Type, TypeVar
 
 import groq
@@ -27,7 +28,6 @@ def call_structured(system: str, user: str, output_model: Type[T]) -> T:
     schema = output_model.model_json_schema()
     schema["additionalProperties"] = False
 
-    last_error = None
     messages = [
         {"role": "system", "content": system},
         {"role": "user", "content": user},
@@ -63,6 +63,24 @@ def call_structured(system: str, user: str, output_model: Type[T]) -> T:
             ]
 
     raise RuntimeError(f"No valid output after {MAX_ATTEMPTS} attempts") from last_error
+
+
+def stream_text(system: str, user: str) -> Iterator[str]:
+    """Stream a plain-text answer from the model, piece by piece as it is generated."""
+    stream = _client.chat.completions.create(
+        model=MODEL,
+        temperature=0,
+        reasoning_effort="low",
+        stream=True,
+        messages=[
+            {"role": "system", "content": system},
+            {"role": "user", "content": user},
+        ],
+    )
+    for chunk in stream:
+        if chunk.choices and chunk.choices[0].delta.content:
+            yield chunk.choices[0].delta.content
+
 
 def chat(messages: list[dict], tools: list[dict] | None = None):
     """One chat turn. Returns the model's message, which may contain tool calls."""

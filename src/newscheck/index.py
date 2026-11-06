@@ -19,7 +19,7 @@ def _tokens(text: str) -> list[str]:
 VECTOR_SIZE = 384  # bge-small-en-v1.5
 # Provisional, for bge-small-en-v1.5: pure noise scored ~0.37, on-topic passages ~0.70+.
 # Its job is to drop noise, not to tell this event apart from related ones (ranking and the judge do that).
-RELEVANCE_FLOOR = 0.5
+RELEVANCE_FLOOR = 0.55
 
 
 class Passage(BaseModel):

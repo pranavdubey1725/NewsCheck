@@ -1,0 +1,70 @@
+[
+    {
+        "name": "microsoft",
+        "gold": {
+            "https://www.wdbj7.com/2026/10/26/microsoft-offers-60000-employees-voluntary-buyouts-ai-spending-accelerates": "has offered 60,000 employees, or about 27% of its global workforce, voluntary buyouts",
+            "https://businessmodelanalyst.com/microsoft-voluntary-exit-offer-unvested-stock": "is offering a Voluntary Exit Offer to roughly 60,000 employees",
+            "https://www.hindustantimes.com/world-news/us-news/microsoft-offers-voluntary-buyouts-to-around-60-000-employees-in-india-us-canada-uk-101793031714414.html": "Approximately 60,000 employees meet the eligibility criteria",
+            "https://liberationnews.org/microsoft-offers-voluntary-layoffs-to-60000-as-bosses-make-workers-pay-for-ai-gamble": "announced that it is offering buyouts to roughly 60,000 of its employees",
+            "https://www.1380kcim.com/2026/10/27/microsoft-corp-offers-buyouts-to-approximately-60000-employees-amid-ai-expansion": "is offering voluntary buyouts to approximately 60,000 employees"
+        }
+    },
+    {
+        "name": "microsoft",
+        "claim": "A quarter of Microsoft's workforce is being pushed out of the company.",
+        "gold": {
+            "https://www.wdbj7.com/2026/10/26/microsoft-offers-60000-employees-voluntary-buyouts-ai-spending-accelerates": "has offered 60,000 employees, or about 27% of its global workforce, voluntary buyouts",
+            "https://businessmodelanalyst.com/microsoft-voluntary-exit-offer-unvested-stock": "is offering a Voluntary Exit Offer to roughly 60,000 employees",
+            "https://www.hindustantimes.com/world-news/us-news/microsoft-offers-voluntary-buyouts-to-around-60-000-employees-in-india-us-canada-uk-101793031714414.html": "Approximately 60,000 employees meet the eligibility criteria",
+            "https://liberationnews.org/microsoft-offers-voluntary-layoffs-to-60000-as-bosses-make-workers-pay-for-ai-gamble": "announced that it is offering buyouts to roughly 60,000 of its employees",
+            "https://www.1380kcim.com/2026/10/27/microsoft-corp-offers-buyouts-to-approximately-60000-employees-amid-ai-expansion": "is offering voluntary buyouts to approximately 60,000 employees"
+        }
+    },
+    {
+        "name": "microsoft",
+        "claim": "60,000 Microsoft staff lost their jobs this week.",
+        "gold": {
+            "https://www.wdbj7.com/2026/10/26/microsoft-offers-60000-employees-voluntary-buyouts-ai-spending-accelerates": "has offered 60,000 employees, or about 27% of its global workforce, voluntary buyouts",
+            "https://businessmodelanalyst.com/microsoft-voluntary-exit-offer-unvested-stock": "is offering a Voluntary Exit Offer to roughly 60,000 employees",
+            "https://www.hindustantimes.com/world-news/us-news/microsoft-offers-voluntary-buyouts-to-around-60-000-employees-in-india-us-canada-uk-101793031714414.html": "Approximately 60,000 employees meet the eligibility criteria",
+            "https://liberationnews.org/microsoft-offers-voluntary-layoffs-to-60000-as-bosses-make-workers-pay-for-ai-gamble": "announced that it is offering buyouts to roughly 60,000 of its employees",
+            "https://www.1380kcim.com/2026/10/27/microsoft-corp-offers-buyouts-to-approximately-60000-employees-amid-ai-expansion": "is offering voluntary buyouts to approximately 60,000 employees"
+        }
+    },
+    {
+        "name": "tamil_nadu",
+        "gold": {
+            "https://www.news18.com/education-career/tamil-nadu-schools-and-colleges-to-remain-closed-on-november-9-after-diwali-10403118.html": "has declared November 9, 2026, a public holiday following Deepavali",
+            "https://www.telegraphindia.com/edugraph/news/tamil-nadu-declares-november-9-holiday-for-diwali-2026-schools-colleges-to-remain-closed/cid/2186818": "has declared November 9 a holiday for all government offices",
+            "https://www.indiatoday.in/education-today/news/story/tamil-nadu-diwali-school-college-holiday-2026-november-9-closed-november-28-working-day-3027515-2026-10-29": "as Diwali falls on a Sunday this year",
+            "https://www.legit.ng/world/asia/1739408-monday-november-9-declared-public-holiday-government-reason": "has declared Monday, November 9, 2026, a public holiday across all state government offices",
+            "https://www.jagranjosh.com/general-knowledge/diwali-2026-in-tamil-nadu-november-8-or-9-check-school-bank-and-government-office-holiday-1820013534-1": "November 9 is an additional state holiday"
+        }
+    },
+    {
+        "name": "tamil_nadu",
+        "claim": "Schools in TN will stay shut the day after Deepavali.",
+        "gold": {
+            "https://www.news18.com/education-career/tamil-nadu-schools-and-colleges-to-remain-closed-on-november-9-after-diwali-10403118.html": "has declared November 9, 2026, a public holiday following Deepavali",
+            "https://www.telegraphindia.com/edugraph/news/tamil-nadu-declares-november-9-holiday-for-diwali-2026-schools-colleges-to-remain-closed/cid/2186818": "has declared November 9 a holiday for all government offices",
+            "https://www.indiatoday.in/education-today/news/story/tamil-nadu-diwali-school-college-holiday-2026-november-9-closed-november-28-working-day-3027515-2026-10-29": "as Diwali falls on a Sunday this year",
+            "https://www.legit.ng/world/asia/1739408-monday-november-9-declared-public-holiday-government-reason": "has declared Monday, November 9, 2026, a public holiday across all state government offices",
+            "https://www.jagranjosh.com/general-knowledge/diwali-2026-in-tamil-nadu-november-8-or-9-check-school-bank-and-government-office-holiday-1820013534-1": "November 9 is an additional state holiday"
+        }
+    },
+    {
+        "name": "RBI",
+        "gold": {
+            "https://www.jagranjosh.com/general-knowledge/rbi-factchecks-fake-claims-but-what-if-there-is-a-shortage-of-rupees-10-20-and-50-notes-in-india-list-of-things-that-could-happen-1820013577-1": "The RBI has dismissed fake claims about a shortage of ₹10, ₹20 and ₹50 notes this Diwali",
+            "https://organiser.org/2026/11/03/423652/bharat/fact-check-viral-whatsapp-claim-about-shortage-of-rs-10-rs-20-and-rs-50-notes-ahead-of-deepawali-is-fake": "There is no official communication from the central bank stating that new Rs 10, Rs 20 and Rs 50 notes will be unavailable"
+        }
+    },
+    {
+        "name": "RBI",
+        "claim": "The central bank warned people that small denomination cash will run out this festive season.",
+        "gold": {
+            "https://www.jagranjosh.com/general-knowledge/rbi-factchecks-fake-claims-but-what-if-there-is-a-shortage-of-rupees-10-20-and-50-notes-in-india-list-of-things-that-could-happen-1820013577-1": "The RBI has dismissed fake claims about a shortage of ₹10, ₹20 and ₹50 notes this Diwali",
+            "https://organiser.org/2026/11/03/423652/bharat/fact-check-viral-whatsapp-claim-about-shortage-of-rs-10-rs-20-and-rs-50-notes-ahead-of-deepawali-is-fake": "There is no official communication from the central bank stating that new Rs 10, Rs 20 and Rs 50 notes will be unavailable"
+        }
+    }
+]

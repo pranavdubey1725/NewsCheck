@@ -27,7 +27,7 @@ def check(text: str) -> str:
 
     verdicts = []
     for source_id, (group, rep) in enumerate(zip(groups, representatives)):
-        hits = index.search_source(analysis.claim, source_id, k=PASSAGES_PER_SOURCE)
+        hits = index.search_source_hybrid(analysis.claim, source_id, k=PASSAGES_PER_SOURCE)
         relevant = [h for h in hits if h.score >= RELEVANCE_FLOOR]
         if relevant:
             excerpt = "\n\n".join(h.passage.text for h in relevant)

@@ -1,3 +1,7 @@
+import numpy as np
+
+from newscheck.embeddings import embed_passages
+
 def chunk_fixed(text: str, size: int = 600) -> list[str]:
     """Cut text into pieces of `size` characters. Deliberately naive."""
     return [text[i : i + size] for i in range(0, len(text), size)]
@@ -28,4 +32,26 @@ def chunk_sentences(text: str, target_words: int = 150, overlap: int = 1) -> lis
         if j >= len(sentences):
             break
         i = max(i + 1, j - overlap)
+    return chunks
+
+
+
+def chunk_semantic(text: str, threshold: float = 0.55, max_words: int = 200) -> list[str]:
+    """Start a new chunk wherever two neighbouring sentences are less similar than `threshold`."""
+    sentences = split_sentences(text)
+    if not sentences:
+        return []
+    vectors = np.array(embed_passages(sentences))
+    vectors = vectors / np.linalg.norm(vectors, axis=1, keepdims=True)
+
+    chunks, current, words = [], [sentences[0]], len(sentences[0].split())
+    for i in range(1, len(sentences)):
+        similarity = float(vectors[i] @ vectors[i - 1])
+        n = len(sentences[i].split())
+        if similarity < threshold or words + n > max_words:
+            chunks.append(" ".join(current))
+            current, words = [], 0
+        current.append(sentences[i])
+        words += n
+    chunks.append(" ".join(current))
     return chunks

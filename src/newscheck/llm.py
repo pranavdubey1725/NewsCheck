@@ -63,3 +63,13 @@ def call_structured(system: str, user: str, output_model: Type[T]) -> T:
             ]
 
     raise RuntimeError(f"No valid output after {MAX_ATTEMPTS} attempts") from last_error
+
+def chat(messages: list[dict], tools: list[dict] | None = None):
+    """One chat turn. Returns the model's message, which may contain tool calls."""
+    response = _client.chat.completions.create(
+        model=MODEL,
+        temperature=0,
+        messages=messages,
+        tools=tools,
+    )
+    return response.choices[0].message

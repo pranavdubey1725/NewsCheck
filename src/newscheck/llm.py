@@ -12,7 +12,7 @@ load_dotenv()
 MODEL = "openai/gpt-oss-20b"
 MAX_ATTEMPTS = 3
 
-_client = Groq(api_key=os.environ["GROQ_API_KEY"], max_retries=2)
+_client = Groq(api_key=os.environ["GROQ_API_KEY"], max_retries=5)  # free tier: 8,000 tokens/min; SDK honours retry-after
 
 T = TypeVar("T", bound=BaseModel)
 

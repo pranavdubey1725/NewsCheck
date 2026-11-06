@@ -45,8 +45,8 @@ def _outlet(url: str) -> str:
     return urlparse(url).netloc.removeprefix("www.")
 
 
-def gather_coverage(claim: str) -> tuple[list[SearchResult], list[str]]:
-    """The model chooses search queries; the code adds a fact-check search. Returns (articles, queries run)."""
+def gather_coverage(claim: str) -> tuple[list[SearchResult], list[str], set[str]]:
+    """The model chooses queries; the code adds a fact-check search. Returns (articles, queries, fact-check URLs)."""
     messages = [
         {"role": "system", "content": _system_prompt()},
         {"role": "user", "content": f"<claim>\n{claim}\n</claim>"},
@@ -97,5 +97,5 @@ def gather_coverage(claim: str) -> tuple[list[SearchResult], list[str]]:
                     )
             messages.append({"role": "tool", "tool_call_id": tc.id, "content": result})
 
-    run_search(f"{claim} {FACT_CHECK_SUFFIX}")   # balance: always, whatever the agent did
-    return list(found.values()), queries
+    fact_check_new = run_search(f"{claim} {FACT_CHECK_SUFFIX}")   # balance: always, whatever the agent did
+    return list(found.values()), queries, {r.url for r in fact_check_new}

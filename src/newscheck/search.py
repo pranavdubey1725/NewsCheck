@@ -1,6 +1,7 @@
 import os
 from datetime import datetime
 from email.utils import parsedate_to_datetime
+from urllib.parse import urlparse
 
 from dotenv import load_dotenv
 from pydantic import BaseModel, field_validator
@@ -12,6 +13,13 @@ load_dotenv()
 MIN_SCORE = 0.4
 MAX_RESULTS = 5
 
+# newscheck checks posts FROM social media, so posts ON social media are never evidence (circular).
+EXCLUDED_DOMAINS = [
+    "instagram.com", "facebook.com", "x.com", "twitter.com", "threads.net",
+    "youtube.com", "tiktok.com", "reddit.com", "whatsapp.com", "t.me",
+    "linkedin.com", "quora.com", "pinterest.com", "snapchat.com", "tumblr.com",
+]
+
 _client = TavilyClient(api_key=os.environ["TAVILY_API_KEY"])
 
 
@@ -21,7 +29,7 @@ class SearchResult(BaseModel):
     content: str
     score: float
     published_date: datetime | None = None
-    raw_content: str | None = None  # full page text, when Tavily could extract it, no need for markdown (due to extra symbols)
+    raw_content: str | None = None  # full page text, when Tavily could extract it
 
     @field_validator("published_date", mode="before")
     @classmethod
@@ -34,6 +42,11 @@ class SearchResult(BaseModel):
         return v
 
 
+def is_excluded(url: str) -> bool:
+    host = urlparse(url).netloc.lower().removeprefix("www.").removeprefix("m.")
+    return any(host == d or host.endswith("." + d) for d in EXCLUDED_DOMAINS)
+
+
 def search_news(query: str, max_results: int = MAX_RESULTS) -> list[SearchResult]:
     response = _client.search(
         query=query,
@@ -41,6 +54,7 @@ def search_news(query: str, max_results: int = MAX_RESULTS) -> list[SearchResult
         time_range="month",
         max_results=max_results,
         include_raw_content="text",
+        exclude_domains=EXCLUDED_DOMAINS,
     )
     results = [SearchResult.model_validate(r) for r in response.get("results", [])]
-    return [r for r in results if r.score >= MIN_SCORE]
+    return [r for r in results if r.score >= MIN_SCORE and not is_excluded(r.url)]

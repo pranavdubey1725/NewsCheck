@@ -9,7 +9,7 @@ CLAIMS = [
 ]
 
 for claim in CLAIMS:
-    articles, queries = gather_coverage(claim)
+    articles, queries, _ = gather_coverage(claim)
     groups = group_into_sources(articles)
     print(f"\nCLAIM: {claim}")
     print(f"Queries the agent chose ({len(queries)}):")

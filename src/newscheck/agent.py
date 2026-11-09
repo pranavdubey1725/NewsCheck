@@ -81,9 +81,11 @@ def gather_coverage(claim: str) -> tuple[list[SearchResult], list[str], set[str]
                 result = "Search limit reached. Do not search again."
             else:
                 try:
-                    query = json.loads(tc.function.arguments).get("query", "").strip()
-                except json.JSONDecodeError:
-                    query = ""
+                    args = json.loads(tc.function.arguments)
+                except (json.JSONDecodeError, TypeError):
+                    args = None
+                query = args.get("query") if isinstance(args, dict) else None
+                query = query.strip() if isinstance(query, str) else ""
                 if not query:
                     result = "Invalid call: provide a non-empty 'query'."
                 else:

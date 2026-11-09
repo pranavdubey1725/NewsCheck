@@ -10,8 +10,22 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from fastembed import TextEmbedding
 
 from newscheck.api import app as newscheck_api
+
+# fastembed embeds 256 passages per batch by default, which peaks near 1.9 GB of RAM
+# on a real check. Batches of 8 peak under 300 MB at the same speed, so the app fits
+# on a 512 MB instance. (Long term this belongs in newscheck/embeddings.py.)
+_passage_embed = TextEmbedding.passage_embed
+
+
+def _passage_embed_small_batches(self, texts, **kwargs):
+    kwargs.setdefault("batch_size", 8)
+    return _passage_embed(self, texts, **kwargs)
+
+
+TextEmbedding.passage_embed = _passage_embed_small_batches
 
 STATIC = Path(__file__).parent / "static"
 

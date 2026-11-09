@@ -148,6 +148,20 @@ def test_malformed_tool_arguments_produce_an_error_tool_message_not_a_crash(fake
     assert len(articles) == 1
 
 
+@pytest.mark.parametrize("arguments", ['"just a string"', "[1, 2]", "null", '{"query": 123}', '{"query": null}'])
+def test_tool_arguments_that_are_not_an_object_with_a_text_query_produce_an_error_tool_message(
+    fake_chat, fake_search, arguments
+):
+    chat = fake_chat([reply(tool_call(arguments, "bad")), reply()])
+    search = fake_search()
+
+    _, queries, _ = gather_coverage(CLAIM)
+
+    assert tool_messages(chat.seen[-1]) == ["Invalid call: provide a non-empty 'query'."]
+    assert search.queries == [FACT_CHECK_QUERY]
+    assert queries == [FACT_CHECK_QUERY]
+
+
 def test_claim_text_is_never_changed(fake_chat, fake_search):
     fake_chat([reply(search_call("rewritten: RBI says notes are fine")), reply()])
     search = fake_search()

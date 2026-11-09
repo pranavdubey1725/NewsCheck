@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>newscheck</title>
+  <meta name="description" content="Paste a viral post and see what independent news sources say about it.">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="side">
+      <a class="brand" href="/">
+        <img src="icon.svg" alt="" width="34" height="34">
+        <span>newscheck</span>
+      </a>
+      <nav class="nav">
+        <a class="active" href="#check">Check a post</a>
+        <a href="#how">How it works</a>
+        <a href="/api/docs">API</a>
+      </nav>
+      <p class="side-note">Shows what news articles say. Never decides whether a claim is true.</p>
+    </aside>
+
+    <main class="content">
+      <header class="masthead">
+        <p class="date" id="today"></p>
+        <h1>See what the news actually says.</h1>
+        <p class="lede">Paste a viral post. newscheck finds independent coverage of the claim and shows
+          which sources agree, which disagree, and the exact quotes, with links.</p>
+      </header>
+
+      <div class="grid">
+        <div class="col">
+          <section class="block" id="check">
+            <h2 class="label">(01) Paste a post</h2>
+            <form id="form">
+              <textarea id="text" rows="7" maxlength="2000" required
+                placeholder="BREAKING: Microsoft is kicking out 60,000 employees!!! Share before it gets deleted"></textarea>
+              <div class="row">
+                <span class="hint">A check takes about a minute</span>
+                <button id="go" type="submit">Check post</button>
+              </div>
+            </form>
+          </section>
+
+          <section class="block" id="how">
+            <h2 class="label">How it works</h2>
+            <ol class="how">
+              <li><b>Read</b> the post and pull out the factual claim. Opinions are set aside.</li>
+              <li><b>Search</b> recent news coverage with several queries, plus fact-checks.</li>
+              <li><b>Group</b> syndicated copies so each source counts once.</li>
+              <li><b>Compare</b> each source against the claim, quoting it exactly.</li>
+            </ol>
+          </section>
+        </div>
+
+        <div class="col">
+          <section class="block empty" id="empty">
+            <h2 class="label">Report</h2>
+            <p>Your evidence report will appear here, with each source, what it says, and a link to read it yourself.</p>
+          </section>
+
+          <section class="block" id="progress-block" hidden>
+            <h2 class="label">(02) Progress</h2>
+            <ol id="steps" class="steps"></ol>
+            <p id="summary" class="summary" hidden></p>
+          </section>
+
+          <section class="block" id="report-block" hidden>
+            <h2 class="label">(03) Report</h2>
+            <div id="report"></div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

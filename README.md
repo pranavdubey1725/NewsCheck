@@ -1,3 +1,14 @@
+---
+title: newscheck
+emoji: 📰
+colorFrom: gray
+colorTo: red
+sdk: docker
+app_port: 7860
+pinned: false
+short_description: See what independent news says about a viral post
+---
+
 # newscheck
 
 Paste a viral social-media post. newscheck finds recent news coverage of the claim in it and reports **what independent news sources say** about it: which sources report the same thing, which report something different (with an exact quote and a link), and which don't address it.

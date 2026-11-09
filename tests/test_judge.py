@@ -1,3 +1,4 @@
+from newscheck import judge
 from newscheck.judge import ArticleVerdict, DetailCheck, Judgement, quote_in_text
 from newscheck.search import SearchResult
 
@@ -54,3 +55,55 @@ def test_quote_marks_inside_the_source_are_ignored():
 def test_source_with_no_relevant_passage_is_not_addressed():
     v = ArticleVerdict(article=ARTICLE)
     assert v.stance == "not_addressed"
+
+# --- quote retry loop, with a fake model (no network) ---------------------------------------------
+
+PASSAGES = "Microsoft has offered voluntary buyouts to around 60,000 employees."
+INVENTED = CONTRADICTING.model_copy(update={"evidence": "Microsoft is laying off 60,000 people"})
+
+
+def fake_model(monkeypatch, *judgements):
+    """Replace the model with scripted judgements; returns the list of calls made."""
+    calls = []
+
+    def call_structured(system, user, output_model):
+        calls.append(user)
+        return judgements[min(len(calls), len(judgements)) - 1]
+
+    monkeypatch.setattr(judge, "call_structured", call_structured)
+    return calls
+
+
+def test_retry_message_is_printed_only_when_another_attempt_follows(monkeypatch, capsys):
+    calls = fake_model(monkeypatch, INVENTED)   # the quote is never in the passages
+
+    verdict = judge.judge_article("Microsoft is kicking out 60,000 employees.", ARTICLE, PASSAGES)
+
+    out = capsys.readouterr().out
+    assert len(calls) == 1 + judge.MAX_QUOTE_RETRIES
+    assert out.count("[retry]") == judge.MAX_QUOTE_RETRIES
+    assert out.count("[downgraded]") == 1
+    assert verdict.stance == "not_addressed"
+
+
+def test_no_retry_message_when_the_first_quote_is_found(monkeypatch, capsys):
+    calls = fake_model(monkeypatch, CONTRADICTING)   # "voluntary buyouts" is in the passages
+
+    verdict = judge.judge_article("Microsoft is kicking out 60,000 employees.", ARTICLE, PASSAGES)
+
+    out = capsys.readouterr().out
+    assert len(calls) == 1
+    assert "[retry]" not in out and "[downgraded]" not in out
+    assert verdict.stance == "contradicts"
+
+
+def test_retry_with_feedback_can_recover_the_quote(monkeypatch, capsys):
+    calls = fake_model(monkeypatch, INVENTED, CONTRADICTING)
+
+    verdict = judge.judge_article("Microsoft is kicking out 60,000 employees.", ARTICLE, PASSAGES)
+
+    out = capsys.readouterr().out
+    assert len(calls) == 2
+    assert "does not appear in the passages" in calls[1]
+    assert out.count("[retry]") == 1 and "[downgraded]" not in out
+    assert verdict.stance == "contradicts"

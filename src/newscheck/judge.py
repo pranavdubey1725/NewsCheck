@@ -101,12 +101,13 @@ def judge_article(claim: str, article: SearchResult, excerpt: str | None = None)
         f"<claim>\n{claim}\n</claim>\n\n"
         f"<article>\nTitle: {article.title}\n\n{text}\n</article>"
     )
-    for _ in range(1 + MAX_QUOTE_RETRIES):
+    for attempt in range(1 + MAX_QUOTE_RETRIES):
         judgement = call_structured(SYSTEM_PROMPT, user, Judgement)
         found = quote_in_text(judgement.evidence, f"{article.title}\n{text}")
         if found or judgement.stance == "not_addressed":
             break
-        print(f"[retry] evidence quote not found in {article.url}, asking again")
+        if attempt < MAX_QUOTE_RETRIES:   # only when another attempt will actually happen
+            print(f"[retry] evidence quote not found in {article.url}, asking again")
         user += (
             f"\n\nYour evidence quote {judgement.evidence!r} does not appear in the passages. "
             "Copy ONE continuous quote exactly, character for character, from a single passage."

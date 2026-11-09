@@ -30,3 +30,26 @@ def group_into_sources(articles: list[SearchResult]) -> list[list[SearchResult]]
                     stack.append(j)
         groups.append([articles[i] for i in sorted(component)])
     return groups
+
+
+MAX_SOURCES = 6          # judge at most this many sources per check (rate limits, latency)
+RESERVED_FACT_CHECK = 2  # of those, slots kept for sources found by the fact-check search
+
+
+def select_sources(
+    groups: list[list[SearchResult]],
+    fact_check_urls: set[str],
+    max_sources: int = MAX_SOURCES,
+    reserved: int = RESERVED_FACT_CHECK,
+) -> list[list[SearchResult]]:
+    """Keep at most max_sources groups, guaranteeing up to `reserved` fact-check groups a place."""
+    def from_fact_check(group: list[SearchResult]) -> bool:
+        return any(a.url in fact_check_urls for a in group)
+
+    fact = [g for g in groups if from_fact_check(g)]
+    other = [g for g in groups if not from_fact_check(g)]
+
+    chosen = fact[:reserved]
+    chosen += other[: max_sources - len(chosen)]
+    chosen += fact[reserved:][: max_sources - len(chosen)]   # unused slots go back to fact-check results
+    return chosen

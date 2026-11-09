@@ -50,7 +50,8 @@ def render(analysis: ClaimAnalysis, verdicts: list[ArticleVerdict]) -> str:
 
     order = {"contradicts": 0, "supports": 1, "not_addressed": 2}
     for v in sorted(verdicts, key=lambda v: order[v.stance]):
-        lines += ["", f"- {v.article.title}  ({STANCE_LABELS[v.stance]})"]
+        label = "couldn't be checked right now" if v.failed else STANCE_LABELS[v.stance]
+        lines += ["", f"- {v.article.title}  ({label})"]
         if v.stance != "not_addressed":
             lines.append(f'    "{v.judgement.evidence}"')
         if v.stance == "contradicts" and v.judgement.conflicting_detail:

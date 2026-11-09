@@ -62,6 +62,7 @@ class ArticleVerdict(BaseModel):
     judgement: Judgement | None = None   # None = no passage cleared the relevance floor; no LLM call made
     evidence_found: bool = False
     copies: list[SearchResult] = []
+    failed: bool = False                  # judging raised an error (e.g. rate limit); shown to the user, not hidden
 
     @property
     def stance(self) -> str:

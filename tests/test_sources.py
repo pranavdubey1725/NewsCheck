@@ -24,3 +24,26 @@ def test_independent_articles_stay_separate():
     a = article("https://a.com", WIRE)
     b = article("https://b.com", "The central bank kept interest rates unchanged on Thursday after a two day meeting of its policy committee in the capital")
     assert len(group_into_sources([a, b])) == 2
+
+
+from newscheck.sources import select_sources
+
+
+def _group(url: str) -> list[SearchResult]:
+    return [article(url, WIRE)]
+
+
+def test_fact_check_sources_keep_their_reserved_slots():
+    agent = [_group(f"https://agent{i}.com") for i in range(8)]
+    fact = [_group("https://factcheck1.com"), _group("https://factcheck2.com")]
+    chosen = select_sources(agent + fact, {"https://factcheck1.com", "https://factcheck2.com"}, max_sources=6, reserved=2)
+    urls = {g[0].url for g in chosen}
+    assert len(chosen) == 6
+    assert {"https://factcheck1.com", "https://factcheck2.com"} <= urls
+
+
+def test_unused_slots_go_back_to_fact_check_results():
+    agent = [_group("https://agent1.com")]
+    fact = [_group(f"https://fc{i}.com") for i in range(5)]
+    chosen = select_sources(agent + fact, {f"https://fc{i}.com" for i in range(5)}, max_sources=6, reserved=2)
+    assert len(chosen) == 6

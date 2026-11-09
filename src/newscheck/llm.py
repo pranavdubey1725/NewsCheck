@@ -1,6 +1,7 @@
 import os
-from typing import Type, TypeVar
 from collections.abc import Iterator
+from typing import Type, TypeVar
+
 import groq
 from dotenv import load_dotenv
 from groq import Groq
@@ -11,7 +12,7 @@ load_dotenv()
 MODEL = "openai/gpt-oss-20b"
 MAX_ATTEMPTS = 3
 
-_client = Groq(api_key=os.environ["GROQ_API_KEY"], max_retries=2)
+_client = Groq(api_key=os.environ["GROQ_API_KEY"], max_retries=5)  # free tier: 8,000 tokens/min; SDK honours retry-after
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -27,7 +28,6 @@ def call_structured(system: str, user: str, output_model: Type[T]) -> T:
     schema = output_model.model_json_schema()
     schema["additionalProperties"] = False
 
-    last_error = None
     messages = [
         {"role": "system", "content": system},
         {"role": "user", "content": user},
@@ -80,3 +80,14 @@ def stream_text(system: str, user: str) -> Iterator[str]:
     for chunk in stream:
         if chunk.choices and chunk.choices[0].delta.content:
             yield chunk.choices[0].delta.content
+
+
+def chat(messages: list[dict], tools: list[dict] | None = None):
+    """One chat turn. Returns the model's message, which may contain tool calls."""
+    response = _client.chat.completions.create(
+        model=MODEL,
+        temperature=0,
+        messages=messages,
+        tools=tools,
+    )
+    return response.choices[0].message

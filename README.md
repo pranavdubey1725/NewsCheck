@@ -1,169 +1,157 @@
 # newscheck
 
-Paste a viral social-media post. newscheck finds recent news coverage of the claim in it and reports **what independent news sources say** about it: which sources report the same thing, which report something different (with an exact quote and a link), and which don't address it.
+**See what the news actually says.**
+Paste a viral post. newscheck reads the claim, searches recent news coverage, and shows you which independent sources agree, which disagree, and the exact sentence each one said.
 
-newscheck never decides whether a claim is true. There is no truth score, no "fake" label and no verdict. The output is an evidence report, and every report ends with:
+[Live demo](https://newscheck-ed7r.onrender.com) · [How it works](#how-a-check-works) · [Run it locally](#quick-start) · [Use it from Claude](#use-it-from-claude-or-any-mcp-client)
 
-> newscheck shows what news articles say. It does not decide whether a claim is true.
+---
 
-**Why:** viral posts spread faster than fact-checks. A reader who can see in a minute that three independent outlets describe the same event differently ("voluntary buyouts", not "kicking out") can judge the post for themselves. A tool that hands out true/false labels has to be right every time, but a tool that shows its sources only has to quote them accurately. Accurate quoting is something code can verify.
+## Why newscheck exists
+
+"BREAKING: Microsoft is kicking out 60,000 employees!!! Share before it gets deleted."
+
+Posts like this spread faster than any fact-check can. By the time a debunk is written, the post has been shared thousands of times. Most fact-checking tools answer with a label, *true* or *false*, and ask you to trust it.
+
+newscheck doesn't hand out labels. It does what a careful reader would do if they had ten minutes and ten browser tabs: find the coverage, set aside the outlets that copied each other, read each article, and quote what it says. In about a minute you can see that three independent outlets describe the same event as *voluntary buyouts*, not *kicking out*, and judge the post for yourself.
+
+A tool that issues verdicts has to be right every time. A tool that shows its sources only has to quote them accurately, and accurate quoting is something code can check.
+
+## Three ideas
+
+**Evidence, not verdicts.** There is no truth score, no "fake" stamp, and no verdict. Every report ends with: *newscheck shows what news articles say. It does not decide whether a claim is true.*
+
+**Independent sources only.** One wire story republished by forty sites is one source, not forty. newscheck detects syndicated copies and counts each story once, so a claim can't look well-supported just because it was copy-pasted widely.
+
+**Every quote is real.** Before a quote reaches you, code checks that it appears word for word in the article. If the model paraphrases, it gets one retry; after that, the source is reported as "doesn't address this claim" rather than shown with an invented quote.
+
+## What you get
+
+```
+CLAIM CHECKED: Microsoft is laying off 60,000 employees.
+
+2 independent source(s) report something different from the post.
+
+- Microsoft offers voluntary buyouts to staff  (disagrees with the post)
+    "…offered voluntary buyouts to eligible employees…"
+    Reports instead: voluntary buyouts, not layoffs
+    https://…
+    Also published by (same text): 3 other sites
+
+- …  (doesn't address this claim)
+
+newscheck shows what news articles say. It does not decide whether a claim is true.
+```
+
+*(Illustrative layout. Real reports link to every article.)*
+
+On the web app, progress streams live as the check runs: reading the post, searching, grouping sources, reading articles, comparing. Then a short summary is written word by word and the full report appears as source cards.
 
 ## How a check works
 
-```
-  post (English text)
-        │
-        ▼
- 1. analyse ── classify: factual_claim / opinion / prediction / needs_context / not_a_claim
-        │      (not a factual claim → stop: "nothing to check")
-        │      rewrite the claim as one neutral sentence; opinions are "set aside", not dropped
-        ▼
- 2. search ─── agent chooses news queries (tool calling, max 4)
-        │      + code always adds one "<claim> fact check" search
-        ▼
- 3. sources ── group syndicated copies (5-word shingles, Jaccard / containment,
-        │      connected components) → independent sources; judge at most 6,
-        │      2 slots reserved for fact-check results
-        ▼
- 4. retrieve ─ one representative article per source → sentence chunks → embeddings
-        │      → per-source hybrid search (dense + BM25, RRF) → relevance floor
-        │      (nothing clears the floor → no LLM call for that source)
-        ▼
- 5. judge ──── per source, check each claim detail; stance computed in code;
-        │      evidence quote verified against the passages (one retry, then not_addressed)
-        ▼
- 6. report ─── stream progress + an evidence-only summary, then a deterministic report
+```mermaid
+flowchart LR
+    post([Post]) --> read[Read claim] --> search[Search news] --> group[Group copies]
+    group --> retrieve[Retrieve passages] --> judge[Judge] --> verify{Quote verified?} --> report([Report])
+
+    classDef llm fill:#fa2d48,stroke:#fa2d48,color:#fff
+    class read,search,judge,report llm
 ```
 
-| Step | Module |
+<sub>Red steps call the model (Groq). Every other step is plain code.</sub>
+
+The model makes judgment calls. The rules are enforced in code:
+
+- **Stance is computed, not guessed.** The model checks each detail of the claim, and code turns those checks into *agrees*, *disagrees*, or *doesn't address*.
+- **Nothing relevant means no model call.** If no passage clears the relevance floor, that source isn't sent to the model at all.
+- **The agent has limits.** The search agent chooses its own queries, but code caps the number of searches, always adds a fact-check search, and leaves the claim read-only.
+- **Copies are detected lexically.** Articles are compared by overlapping 5-word phrases, not embeddings, because independent reports of the same event are semantically near-identical.
+
+## Measured, not assumed
+
+Each design choice came from an experiment on frozen data:
+
+| Decision | Result |
 |---|---|
-| 1. Claim analysis | `src/newscheck/claims.py` |
-| 2. Search agent | `src/newscheck/agent.py`, `src/newscheck/search.py` |
-| 3. Independent sources | `src/newscheck/overlap.py`, `src/newscheck/sources.py` |
-| 4. Retrieval | `src/newscheck/chunks.py`, `src/newscheck/embeddings.py`, `src/newscheck/index.py` |
-| 5. Judge | `src/newscheck/judge.py` |
-| 6. Summary, report, streaming | `src/newscheck/summary.py`, `src/newscheck/report.py`, `src/newscheck/pipeline.py`, `src/newscheck/api.py` |
+| Sentence-aware chunking | hit@2 of **0.79** across 29 cases (semantic chunking: 0.72 at best; fixed-size: 0.55) |
+| Hybrid retrieval (dense + BM25) | hit@1 up from **0.55 to 0.66** |
+| Relevance floor of 0.55 | keeps **100%** of answerable sources and silences **75%** of irrelevant ones |
+| Per-detail judging | the "kicking out vs. voluntary buyouts" case went from 2 wrong *agrees* to 0–1 |
 
-All model calls go through `src/newscheck/llm.py` (Groq, `openai/gpt-oss-20b`), and all searches go through `src/newscheck/search.py` (Tavily).
+The test suite runs offline in seconds, with the model, search, and embeddings replaced by fakes, so it never spends a credit.
 
-**Stack:** Python 3.13, uv, Groq, Tavily, fastembed (`BAAI/bge-small-en-v1.5`), Qdrant (in memory), rank-bm25, FastAPI + uvicorn (Server-Sent Events), pydantic v2, MCP Python SDK, pytest, ruff.
-
-## How to run
-
-### 1. Install
+## Quick start
 
 ```bash
 uv sync
 ```
 
-### 2. API keys
-
-Create a `.env` file in the project root (it is git-ignored):
+Add a `.env` file in the project root:
 
 ```
 GROQ_API_KEY=your-groq-key
 TAVILY_API_KEY=your-tavily-key
 ```
 
-Every check spends real Tavily credits and Groq tokens (see *Known limitations* for the free-tier limits).
-
-### 3. Start the API
+Start the web app and API together, then open http://127.0.0.1:8000:
 
 ```bash
-uv run uvicorn newscheck.api:app
+uv run uvicorn web.server:app
 ```
 
-`POST /check` with `{"text": "..."}` streams Server-Sent Events: one `data: {...}` line per progress step (`analyse`, `search`, `sources`, `index`, `judge`, `summarise`, `summary_token`), then a final `done` event that carries the full report. If something fails, the stream ends with an `error` event.
+Or call the API directly. It streams progress as Server-Sent Events and ends with a `done` event that carries the report:
 
 ```bash
-curl -N -X POST http://127.0.0.1:8000/check \
+curl -N -X POST http://127.0.0.1:8000/api/check \
   -H "Content-Type: application/json" \
-  -d '{"text": "BREAKING: Microsoft is kicking out 60,000 employees!!! Share before it gets deleted"}'
+  -d '{"text": "BREAKING: Microsoft is kicking out 60,000 employees!!!"}'
 ```
 
-FastAPI's interactive docs are at http://127.0.0.1:8000/docs.
+Each check spends real Tavily credits and Groq tokens.
 
-### 4. Use it from an MCP client (e.g. Claude Desktop)
+### Use it from Claude or any MCP client
 
-newscheck also runs as an MCP server over stdio, with one tool: `check_claim(text) -> report`.
+newscheck also runs as an MCP server with one tool, `check_claim(text)`:
 
 ```bash
-uv run python -m newscheck.mcp_server
-# or
 uv run newscheck-mcp
 ```
 
-To register it in Claude Desktop, add it to `claude_desktop_config.json`, replacing the path with your clone:
+Register it in `claude_desktop_config.json`:
 
 ```json
-{
-  "mcpServers": {
-    "newscheck": {
-      "command": "uv",
-      "args": ["run", "--directory", "/absolute/path/to/newscheck", "python", "-m", "newscheck.mcp_server"]
-    }
-  }
-}
+{ "mcpServers": { "newscheck": {
+    "command": "uv",
+    "args": ["run", "--directory", "/absolute/path/to/newscheck", "python", "-m", "newscheck.mcp_server"]
+} } }
 ```
 
-On Windows, use a path like `"C:\\path\\to\\newscheck"`. The `.env` keys are read from the project folder. A check runs the full pipeline, so each tool call spends credits and can take a minute.
-
-## Tests and evals
-
-### Tests
+### Tests and evals
 
 ```bash
-uv run pytest
-uv run ruff check src tests eval
+uv run pytest                          # offline, a few seconds
+uv run python eval/retrieval_eval.py   # chunking and retrieval comparison, no API calls
+uv run python eval/agent_eval.py       # live: search agent vs single search, spends credits
 ```
 
-The test suite is offline and finishes in a few seconds. Groq, Tavily and the embedding model are replaced with fakes (`monkeypatch`), so the tests never touch the network or spend credits. They cover the decisions below: copy detection, source selection, quote verification and the retry message, stance derivation, the search agent's limits and fact-check search, the end-to-end event order of `check_stream`, failure handling, and the MCP tool.
+## Built with
 
-### Evals
-
-| Script | Measures | Cost |
-|---|---|---|
-| `eval/retrieval_eval.py` | For each frozen case with a gold phrase, is that phrase in the source's top-k retrieved passages (hit@k)? Compares chunkers (sentence, semantic, fixed-size) and retrieval modes (dense, hybrid). | No API calls. Runs on frozen text plus the local embedding model. |
-| `eval/floor_eval.py` | Best passage scores for answerable sources vs unanswerable (cross-story) sources, and how much of each a given relevance floor keeps or silences. | No API calls. Same as above. |
-| `eval/agent_eval.py` | Single search vs the search agent, 3 runs per claim: independent sources, fact-check articles (by title keywords), searches, seconds, stability (mean pairwise Jaccard of the outlet sets across runs) and excluded-domain leaks. Saves dated JSON to `eval/results/`. | **Live**, about 70 Tavily credits plus Groq tokens. |
-
-```bash
-uv run python eval/retrieval_eval.py
-uv run python eval/floor_eval.py
-uv run python eval/agent_eval.py   # live: spends credits
-```
-
-The retrieval and floor evals read frozen search results in `eval/data/`, which is git-ignored because it contains third-party article text. `eval/freeze.py` creates it (1 Tavily credit per claim). `eval/check_gold.py` verifies that every gold phrase in `eval/cases.json` really appears in its frozen source.
-
-## Key decisions
-
-| Decision | What and why |
+| Layer | Tools |
 |---|---|
-| Evidence report, not a truth score | Output is an evidence report, never a truth score. Claim types: `factual_claim`, `opinion`, `prediction`, `needs_context`, `not_a_claim`. Opinions inside factual posts are reported as "set aside", not silently dropped. |
-| Verdict casing | Verdict casing is normalised (lowercase/strip) before validation. This was decided in the structured-output experiment (`experiments/03_structured_outputs.py`), before claim analysis replaced verdicts. |
-| Search provider | Tavily (news mode, one-month window), chosen for freshness of viral claims. Social media domains are excluded. |
-| Syndication detection | Lexical (5-word shingles, Jaccard 0.40 or containment 0.60), not embeddings, because independent same-event articles are semantically near-identical. Chains of partial copies are grouped with connected components. |
-| Per-detail judging | The judge checks each claim detail; stance is computed in code. Prompt-only fixes were tried first (field reordering, a stricter rule): no change on frozen inputs. Per-detail checks moved the "kicking out vs voluntary buyouts" case from 2 wrong supports to 0–1. |
-| Verified quotes | Evidence quotes must appear in the text (normalised for case, whitespace and quote marks). Fuzzy matching was rejected because it accepts changed numbers. One retry with feedback, then downgrade to `not_addressed`. |
-| Chunking | Sentence-aware, 150 words, 1-sentence overlap. Retrieval eval (29 frozen cases, hybrid, hit@2): sentence 0.79; semantic 0.72 / 0.62 / 0.55 (thresholds 0.45 / 0.55 / 0.65); fixed-size 0.55. |
-| Retrieval | Per-source top-2 (Qdrant payload filter). Hybrid dense + BM25 (RRF), adopted as a bet on number-heavy viral claims: hit@2 unchanged at 23/29 (+2 on claims sharing numbers or names, −2 on a heavy paraphrase); hit@1 0.55 → 0.66. To be revisited as the eval grows. |
-| Relevance floor 0.55 | Keeps 100% of answerable sources and silences 75% of cross-story noise (0.50: 100% / 67%; 0.60: 97% / 90%). Recall is preferred because a silenced source cannot be recovered, and the judge is a second check. |
-| Search agent | The model chooses queries; code enforces the limits, always adds a fact-check search (+1 credit; the prompt-only version was never followed), and the claim is read-only. |
-| Not built on purpose | Multi-tenancy (only public data; per-check collection isolation instead). LangGraph (single loop, no branches). |
+| Models | Groq (`openai/gpt-oss-20b`), structured outputs, tool calling |
+| Search | Tavily (news mode, one-month window, social media excluded) |
+| Retrieval | fastembed (`bge-small-en-v1.5`), Qdrant in memory, BM25, reciprocal rank fusion |
+| Serving | FastAPI, Server-Sent Events, MCP Python SDK, Docker |
+| Quality | pytest, ruff, frozen-data evals |
 
-## Known limitations
+## Honest limitations
 
-- Two facts in one post become one claim.
-- Hinglish is silently translated and can gain details.
-- Sarcasm can leak into the claim.
-- The domain blocklist cannot catch forum or comment pages on news sites.
-- The streamed summary is free text and can overstate agreement.
-- Live search results drift between runs.
-- Copy detection runs on Tavily excerpts.
-- Thresholds are calibrated on small evals.
-- English only.
-- Tavily's free tier is 1,000 credits/month, and Groq's free tier is 8,000 tokens/minute.
+- English only. Hinglish is translated silently and can pick up details along the way.
+- Two separate facts in one post are checked as a single claim.
+- The streamed summary is free text and can overstate agreement. The report below it is the source of truth.
+- Live search results drift between runs, and thresholds are calibrated on small evals.
+- The live demo runs on a free instance. It sleeps when idle, and a check can take several minutes.
 
-## Project history
+## How it was built
 
-v1 was built quickly with an AI agent. This v2 was rebuilt from scratch one decision at a time, with one PR per feature. The scripts in `experiments/` are the learning history: each one tried a single idea (structured outputs, raw vs wrapped search, overlap, chunking, embeddings, per-source retrieval, streaming, the agent) before it became part of `src/newscheck/`.
+v1 was built quickly with an AI agent. v2, this repository, was rebuilt from scratch one decision at a time, with one pull request per feature. The `experiments/` folder is the trail: each script tested a single idea (structured outputs, copy detection, chunking, embeddings, per-source retrieval, streaming, the search agent) before it became part of `src/newscheck/`.
